@@ -1,0 +1,208 @@
+# Projeto: identificação de oportunidades de balanceamento
+# 2022
+from timeit import default_timer as timer
+from scipy.spatial import Delaunay
+from collections import defaultdict
+import pandas as pd
+
+
+def monitor_elapsed_timer(func):
+    def wrapper(*args, **kwargs):
+        start = timer()
+        func(*args, **kwargs)
+        tempo = (timer()-start)
+        print("Tempo: %.5f s" %(tempo))
+    return wrapper
+
+
+class DadosGeograficos():
+    """Essa classe tem como objetivo tratar os dados geograficos.
+       Notadamente criar uma cordenada para cada setor para uso
+       no algoritmo de VORONOI
+       Entrada: DF com END_ID, Azimute, Lat, Long, Altura, Banda
+    """
+    @monitor_elapsed_timer
+    def determinarCoordDosSetores(self, df):
+        """ com base no END_ID | LAT | LONG | Setor | Azimute determinar
+            coordenadas para cada setor distantes 20 m da coordenada do
+            site. necessario para definir o diagrama de voronoi
+        """
+        print('Classe:DadosGeograficos. metodo:determinarCoordDosSetores')
+        print("Dados recebidos", df)
+        df = "DF agora com as coordenadas dos setores"
+        self.dfCoordenadasSetores = df
+
+        return None
+
+
+class InterfaceDeDados():
+    """Essa classsse tem como objetivo realizar a leitura dos dados em arquivos
+       no formado desejado
+    """
+
+    def LerDados(self, df):
+        """ Ler Dados
+        """
+        print('Classe: InterfaceDeDados. metodo: LerDados')
+        print("dados lidos")
+        #print(df)
+        self._dados_entrada = df
+
+        return None
+
+    def EscreverDados(self, df):
+        """ Escrever dados """
+        print('Classe: InterfaceDeDados. metodo: EscreverDados')
+        print("dados escritos: ", df)
+
+        return None
+
+
+class PathLoss:
+    """ Classe para calcular o PathLoss
+        Precisa de um DF com:
+        | Setor Origem | Lat_origem | Long_origem | Setor_vizinho |
+        Lat_vizinho | Lon_vizinho | Banda_vizinho | Altura_vizinho |Tipo_cidade
+
+        Tipo_cidade vai virar o clutter do modelo
+        Precisa das constantes:
+
+        PMAX - Potencia da célula (43dBm)
+        G - Ganho da antena (15 dbi)
+        RxLevMax - RX level max pra clipar qdo a distancia for zero (celulas
+        do mesmo site) (-40 RSRP)
+        RxLevMin - Pra cortar celulas distantes (-100 RSRP)
+    """
+    def calcular(self, df):
+        """ Calcula o PathLoss e salva num df
+        """
+        print('Classe: PathLoss. metodo: calcular')
+        print('Atualizando o df com o pathLoss')
+
+        self.dfPathLoss = "df_com_pathLoss"
+
+        return None
+
+class Voronoi:
+    """ Essa classe tem os métodos para realizar a identificação de
+        células vizinhas VORONOI
+    """
+
+    def definirVizinhas(self, df):
+        """
+        Recebe o DF e cria o mapa de Voronoi
+        ja retorna a lista de celulas vizinas porém nao trata as vizinhas
+        ja retorna a lista de vizinhas com o index trocado para o nome
+        da celula
+        """
+        from scipy.spatial import Delaunay
+        from collections import defaultdict
+
+        print('Classe: Voronoi. metodo: definirVizinhas')
+        print('Criando mapa de VORONOI')
+        print('gerando lista de vizinhos')
+        print('trocando o index pelo nome da celula')
+        print('retornando o resultado')
+        self._vizinhas = "df_com_vizinhas"
+
+        return None
+
+    def removerVizinhasIrrelevantes(self, df):
+        """ Remover as vizinhas irrelevantes
+            por exemplo S1 e S2 do mesmo End_ID.
+        """
+        print('Classe: Voronoi. metodo: removerVizinhasIrrelevante')
+        print('Dados de entrada: ', df)
+        self._vizinhas = "df_tratado"
+        return None
+
+
+class Promethee:
+    """ Classe Para rodar o problema de selecao dos vizinhos
+    Entradas df com a lista de
+    Setor_origem | Setor_proposto | PathLoss | Parametros de carga da celula
+    saida: Lista priorizada
+    é rodado um modelo para cada setor proposto
+    """
+    def promethee(self, df):
+        """ Executa o promethee"""
+        print('Classe: Promethee. metodo: promethee')
+        print('Dados de entrada: ', df)
+        self._priorizado = "df_priorizado"
+        return None
+
+
+class _Fachada():
+    """ Fachada para interacao
+    Know which subsystem classes are responsible for a request.
+    Delegate client requests to appropriate subsystem objects.
+    """
+
+    _instance = None
+
+    def __init__(self):
+        print('Classe: Fachada. metodo: Init')
+        self._subsystem_1 = InterfaceDeDados()  # Subsystem1 Ler arquivos e
+                                                # tratar os dados
+        self._subsystem_2 = DadosGeograficos()  # Subsystem2 utiliza o GeoClib
+                                                # para preparar o input para
+                                                # o Voronoi
+        self._subsystem_3 = Voronoi()           # Voronoi
+        self._subsystem_4 = PathLoss()          # PathLoss
+        self._subsystem_5 = Promethee()         # Promethee
+
+    def executar(self, arquivo_entrada):
+        """ Executa a fachada
+        """
+
+        print('Classe: Fachada. metodo: Executar')
+        # Passo 1
+        self._subsystem_1.LerDados(arquivo_entrada)
+        print(self._subsystem_1._dados_entrada)
+
+        # Passo 2
+        self._subsystem_2.determinarCoordDosSetores(
+            self._subsystem_1._dados_entrada
+            )
+        print(self._subsystem_2.dfCoordenadasSetores)
+
+        # Passo 3
+        self._subsystem_3.definirVizinhas(
+            self._subsystem_2.dfCoordenadasSetores
+            )
+
+        # Passo 4 - remover vizinhas irrelevantes (S1 com S2 do mesmo site)
+        self._subsystem_3.removerVizinhasIrrelevantes(
+            self._subsystem_3._vizinhas
+            )
+
+        # Passo 5 - Calcular PathLoss # self._dfPathLoss
+        self._subsystem_4.calcular(self._subsystem_3._vizinhas)
+
+        # Passo 6 - Promethee
+        self._subsystem_5.promethee(self._subsystem_4.dfPathLoss)
+
+        # Passo 7 - Escrever a saida
+        self._subsystem_1.EscreverDados(self._subsystem_5._priorizado)
+
+
+def Fachada():
+    """
+    Singleton
+    """
+    if _Fachada._instance is None:
+        _Fachada._instance = _Fachada()
+    return _Fachada._instance
+
+
+@monitor_elapsed_timer
+def main():
+    """
+    Rotina principal
+    """
+    fachada = Fachada()
+    fachada.executar("arquivo_entrada.xlsx")
+
+
+if __name__ == "__main__":
+    main()

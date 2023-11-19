@@ -1,0 +1,59 @@
+from scipy.spatial import Delaunay
+from collections import defaultdict
+import itertools
+import pandas as pd
+
+df = pd.read_excel('ESTACOES.xlsx')
+
+points = df.iloc[:,1:].values.tolist()
+
+tri = Delaunay(points)
+neiList=defaultdict(set)
+for p in tri.vertices:
+    for i,j in itertools.combinations(p,2):
+        neiList[i].add(j)
+        neiList[j].add(i)
+
+neiList
+# This is for visualization
+from scipy.spatial import Voronoi, voronoi_plot_2d
+import matplotlib.pyplot as plt
+vor = Voronoi(points)
+voronoi_plot_2d(vor)
+for i,p in enumerate(x):
+    plt.text(p[0], p[1], '#%d' % i, ha='center')
+plt.show()
+
+
+# passo 0: criar coordenadas de pontos representandos os setores. Geographiclib. coordenada, azimute e uma distancia => nova_coordenada
+# Passo 1 (<1s): Calcular a região de VORONOI para todos os END_ID que possuem site 4g
+
+# neighbour esta por index. traduzir para celula. 
+# tratar os neighbours 
+
+# Passo 3 (<1s): Tendo o diagrama dividido agora em setores, calcula os setores que são vizinhos
+# Passo 4: 
+#     PARA CADA SETOR:
+#                   - Ler a lista de setores vizinhos.
+#                   - Dos setores vizinhos identificados, levanta as células. 
+#                   - Das celulas levantadas, pego apenas as frequencias.
+#                   Exemplo: detectado que um setor tem 12 células (entre normal e mMIMO)
+#                   porem nao preciso realizar um calculo 12 vezes... se essas celulas não 700, 2100 e 2600.
+
+
+#                   so preciso realizar o calculo do proximo passo 3 vezes, um para cada frequencia, poupando tempo.
+#                   - PARA CADA UMA das frequencias identificadas no setor vizinho:
+#                     calula o PATH LOSS da celula vizinha(oportunidade) para a celula Origem 
+#                     utilizando um modelo de propagação simplificado (HATA), que é em funcao da DISTANCIA e da FREQUENCIA
+#                   - Guarda esse valor. Ele que será utilizado no PROMETHEE.
+#                     veja que ele ja é funcao da DISTANCIA E FREQUENCIA. Portanto não precisa nem incluir a distancia.
+
+# Todo
+
+# Buscar uma de biblioteca de modelo de propagacao ou criar uma funcao de um modelo.
+    
+
+
+# acho que o que precisamos fazer se for seguir nessa linha é:entender como "juntar" os dois problemas (celulas de um mesmo end_id e celulas vizinhas) em um mesmo problema do prometheeescolher uma funcao de pathloss que tenha como entrada, DISTANCIA, FREQUENCIA e, se der, tipo de cidade (pra usar as variacoes de clutter urbano, rural, urbano denso etc)os outros pedacos nos ja temos
+
+# Tem que ver tb se todos os vizinhos levantados sao validos ou se teria como eliminar alguns> por exemplo, ele coloca as celulas do mesmo site como vizinhas (Setor 1 como vizinho do setor 2) e nao queremos

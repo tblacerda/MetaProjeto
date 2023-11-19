@@ -1,0 +1,73 @@
+# Meta modelo de projeto em Python
+# Com o objetivo de tornar os projetos mais simples 
+# e com melhor manutenção.
+# Tiago B. Lacerda
+# 2022
+
+# Dicas: (liste a sua aqui)
+# 1. usar Classes
+# 2. usar decorators (vamos aprender)
+# 3. evitar fazer dessa forma:
+#  df = lerdf()
+#  df_manipulacao1 = <manupulação1>(df)
+#  df_manipulacao1_e_2 = <manupulação1>(df_manipulacao1)
+#  ...
+#  Melhor fazer:
+#  df = lerdf()
+#  df = manipulacao1(df)
+#  df = manipulacao2(df)
+# ....
+
+# Referencias
+# https://medium.com/@dasagrivamanu/python-naming-conventions-the-10-points-you-should-know-149a9aa9f8c7
+# https://peps.python.org/pep-0008/#class-names
+# https://www.oracle.com/java/technologies/javase/codeconventions-namingconventions.html
+# https://pspdfkit.com/blog/2018/naming-classes-why-it-matters-how-to-do-it-well/
+
+
+# Decorator
+from timeit import default_timer as timer
+
+def monitor_elapsed_timer(func):
+    def wrapper(*args, **kwargs):
+        start = timer()
+        func(*args, **kwargs)
+        tempo = (timer()-start)
+        print("Tempo{:.2f}".format)
+    return wrapper
+
+class _Classe_De_Servicos:
+    """ Explicar pra que serve a classe
+
+    """
+    _instance = None
+    
+    def acao1(self):
+        """
+        Explicar entradas e saidas
+        """
+        pass
+    
+    def acao2(self):
+        """
+        Explicar entradas e saidas
+        """
+        pass
+    
+def Classe_De_servicos():
+    """
+    Singleton 
+    """
+    if _Classe_De_Servicos._instance is None:
+        _Classe_De_Servicos._instance = _Classe_De_Servicos()
+    return _Classe_De_Servicos._instance
+
+
+@monitor_elapsed_timer
+def main():
+    """
+    principal
+    """
+    print('teste')  
+    
+main()
